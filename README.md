@@ -1,1 +1,1 @@
-# deit-ai
+# diet-ai
