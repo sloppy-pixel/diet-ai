@@ -1,11 +1,56 @@
-const loadingMessages = [
-  "Analyzing your health profile...",
-  "Building your 7-day meal plan...",
-  "Writing recipes and shopping list..."
-];
+let currentStep = 0;
+const totalSteps = 10;
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.step[data-step="${n}"]`).classList.add('active');
+  const pct = (n / totalSteps) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function next() {
+  if (!validateStep(currentStep)) return;
+  currentStep++;
+  showStep(currentStep);
+}
+
+function prev() {
+  if (currentStep > 0) {
+    currentStep--;
+    showStep(currentStep);
+  }
+}
+
+function validateStep(step) {
+  const checks = {
+    0: () => document.getElementById('api-key').value.trim() || 'Enter your API key.',
+    1: () => document.getElementById('age').value || 'Enter your age.',
+    2: () => document.getElementById('gender').value || 'Select an option.',
+    3: () => document.getElementById('lifestyle').value || 'Select an option.',
+    4: () => true,
+    5: () => true,
+    6: () => document.getElementById('diet-type').value || 'Select an option.',
+    7: () => document.querySelectorAll('.option.selected').length > 0 || 'Pick at least one goal.',
+    8: () => document.getElementById('budget').value || 'Enter your budget.',
+    9: () => document.getElementById('cook-time').value || 'Select an option.',
+  };
+  const result = checks[step]?.();
+  if (result !== true && result) { alert(result); return false; }
+  return true;
+}
+
+function selectOption(el, fieldId) {
+  el.closest('.grid-options').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById(fieldId).value = el.textContent.trim();
+}
+
+function toggleMulti(el) {
+  el.classList.toggle('selected');
+}
 
 function getGoals() {
-  return [...document.querySelectorAll('.checkboxes input:checked')].map(el => el.value);
+  return [...document.querySelectorAll('.multi .option.selected')].map(o => o.textContent.trim());
 }
 
 function getUserData() {
@@ -22,17 +67,11 @@ function getUserData() {
   };
 }
 
-function validate(userData) {
-  if (!document.getElementById('api-key').value.trim()) return 'Please enter your Anthropic API key.';
-  if (!userData.age) return 'Please enter your age.';
-  if (!userData.gender) return 'Please select your gender.';
-  if (!userData.lifestyle) return 'Please select your lifestyle.';
-  if (!userData.dietType) return 'Please select a dietary preference.';
-  if (userData.goals.length === 0) return 'Please select at least one goal.';
-  if (!userData.budget) return 'Please enter your weekly budget.';
-  if (!userData.cookTime) return 'Please select your cooking time.';
-  return null;
-}
+const loadingMessages = [
+  "Analyzing your health profile...",
+  "Building your 7-day meal plan...",
+  "Writing recipes and shopping list..."
+];
 
 async function callClaude(apiKey, system, userMessage) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -50,18 +89,12 @@ async function callClaude(apiKey, system, userMessage) {
       messages: [{ role: 'user', content: userMessage }]
     })
   });
-
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.error?.message || 'API error');
   }
-
   const data = await res.json();
   return data.content[0].text;
-}
-
-function setLoading(msg) {
-  document.getElementById('loading-text').textContent = msg;
 }
 
 function switchTab(tab) {
@@ -71,35 +104,43 @@ function switchTab(tab) {
   document.getElementById(`tab-${tab}`).classList.remove('hidden');
 }
 
+function restart() {
+  currentStep = 0;
+  showStep(0);
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('error-msg').classList.add('hidden');
+}
+
 async function generatePlan() {
   const userData = getUserData();
-  const error = validate(userData);
-  if (error) { alert(error); return; }
-
   const apiKey = document.getElementById('api-key').value.trim();
   const btn = document.getElementById('generate-btn');
+
   btn.disabled = true;
   btn.textContent = 'Generating...';
 
-  const outputSection = document.getElementById('output-section');
+  currentStep = 10;
+  showStep(10);
+
   const loadingEl = document.getElementById('loading');
   const resultsEl = document.getElementById('results');
+  const errorEl = document.getElementById('error-msg');
 
-  outputSection.classList.remove('hidden');
   loadingEl.classList.remove('hidden');
   resultsEl.classList.add('hidden');
-  outputSection.scrollIntoView({ behavior: 'smooth' });
+  errorEl.classList.add('hidden');
 
   try {
     const { system, step1, step2, step3 } = buildPrompts(userData);
 
-    setLoading(loadingMessages[0]);
+    document.getElementById('loading-text').textContent = loadingMessages[0];
     const analysis = await callClaude(apiKey, system, step1);
 
-    setLoading(loadingMessages[1]);
+    document.getElementById('loading-text').textContent = loadingMessages[1];
     const weeklyPlan = await callClaude(apiKey, system, step2(analysis));
 
-    setLoading(loadingMessages[2]);
+    document.getElementById('loading-text').textContent = loadingMessages[2];
     const recipesAndShopping = await callClaude(apiKey, system, step3(weeklyPlan));
 
     const splitIndex = recipesAndShopping.indexOf('B) SHOPPING LIST');
@@ -119,9 +160,10 @@ async function generatePlan() {
 
   } catch (err) {
     loadingEl.classList.add('hidden');
-    outputSection.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+    errorEl.textContent = 'Error: ' + err.message;
+    errorEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Generate My Plan ↗';
+    btn.textContent = 'Generate my plan →';
   }
 }

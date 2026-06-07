@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diet AI</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Progress bar -->
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+  <!-- Steps -->
+  <div id="steps-wrapper">
+
+    <!-- Step 0: API Key -->
+    <div class="step active" data-step="0">
+      <span class="step-label">Before we start</span>
+      <h2>Enter your Anthropic API key</h2>
+      <p class="hint">Your key never leaves your browser.</p>
+      <input type="password" id="api-key" placeholder="sk-ant-..."/>
+      <div class="nav"><button onclick="next()">Continue →</button></div>
+    </div>
+
+    <!-- Step 1: Age -->
+    <div class="step" data-step="1">
+      <span class="step-label">01 / 09</span>
+      <h2>How old are you?</h2>
+      <input type="number" id="age" placeholder="e.g. 21" min="13" max="35"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Gender -->
+    <div class="step" data-step="2">
+      <span class="step-label">02 / 09</span>
+      <h2>What's your gender?</h2>
+      <div class="grid-options">
+        <button class="option" onclick="selectOption(this, 'gender')">Male</button>
+        <button class="option" onclick="selectOption(this, 'gender')">Female</button>
+        <button class="option" onclick="selectOption(this, 'gender')">Non-binary</button>
+        <button class="option" onclick="selectOption(this, 'gender')">Prefer not to say</button>
+      </div>
+      <input type="hidden" id="gender"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Lifestyle -->
+    <div class="step" data-step="3">
+      <span class="step-label">03 / 09</span>
+      <h2>What's your lifestyle like?</h2>
+      <div class="grid-options">
+        <button class="option" onclick="selectOption(this, 'lifestyle')">Student — low activity</button>
+        <button class="option" onclick="selectOption(this, 'lifestyle')">Student — moderate activity</button>
+        <button class="option" onclick="selectOption(this, 'lifestyle')">Working — desk job</button>
+        <button class="option" onclick="selectOption(this, 'lifestyle')">Working — active job</button>
+      </div>
+      <input type="hidden" id="lifestyle"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Health conditions -->
+    <div class="step" data-step="4">
+      <span class="step-label">04 / 09</span>
+      <h2>Any health conditions or deficiencies?</h2>
+      <p class="hint">e.g. iron deficiency, PCOS, diabetes, thyroid — or leave blank</p>
+      <input type="text" id="conditions" placeholder="Type here or leave blank"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Allergies -->
+    <div class="step" data-step="5">
+      <span class="step-label">05 / 09</span>
+      <h2>Any food allergies?</h2>
+      <p class="hint">e.g. peanuts, gluten, shellfish, dairy — or leave blank</p>
+      <input type="text" id="allergies" placeholder="Type here or leave blank"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 6: Diet type -->
+    <div class="step" data-step="6">
+      <span class="step-label">06 / 09</span>
+      <h2>Dietary preference?</h2>
+      <div class="grid-options">
+        <button class="option" onclick="selectOption(this, 'diet-type')">No restriction</button>
+        <button class="option" onclick="selectOption(this, 'diet-type')">Vegetarian</button>
+        <button class="option" onclick="selectOption(this, 'diet-type')">Vegan</button>
+        <button class="option" onclick="selectOption(this, 'diet-type')">Eggetarian</button>
+        <button class="option" onclick="selectOption(this, 'diet-type')">Pescatarian</button>
+      </div>
+      <input type="hidden" id="diet-type"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 7: Goals -->
+    <div class="step" data-step="7">
+      <span class="step-label">07 / 09</span>
+      <h2>What are your goals?</h2>
+      <p class="hint">Pick as many as you want.</p>
+      <div class="grid-options multi">
+        <button class="option" onclick="toggleMulti(this)">Weight loss</button>
+        <button class="option" onclick="toggleMulti(this)">Muscle gain</button>
+        <button class="option" onclick="toggleMulti(this)">Better skin</button>
+        <button class="option" onclick="toggleMulti(this)">Hair growth</button>
+        <button class="option" onclick="toggleMulti(this)">More energy</button>
+        <button class="option" onclick="toggleMulti(this)">Gut health</button>
+        <button class="option" onclick="toggleMulti(this)">Hormonal balance</button>
+      </div>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 8: Budget -->
+    <div class="step" data-step="8">
+      <span class="step-label">08 / 09</span>
+      <h2>Weekly meal budget (₹)?</h2>
+      <input type="number" id="budget" placeholder="e.g. 1500"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button onclick="next()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 9: Cook time -->
+    <div class="step" data-step="9">
+      <span class="step-label">09 / 09</span>
+      <h2>How much time can you cook per day?</h2>
+      <div class="grid-options">
+        <button class="option" onclick="selectOption(this, 'cook-time')">Less than 20 mins</button>
+        <button class="option" onclick="selectOption(this, 'cook-time')">20–40 mins</button>
+        <button class="option" onclick="selectOption(this, 'cook-time')">40–60 mins</button>
+        <button class="option" onclick="selectOption(this, 'cook-time')">Meal prep weekends only</button>
+      </div>
+      <input type="hidden" id="cook-time"/>
+      <div class="nav">
+        <button class="back" onclick="prev()">←</button>
+        <button id="generate-btn" onclick="generatePlan()">Generate my plan →</button>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div class="step" data-step="10">
+      <div id="loading" class="hidden">
+        <p id="loading-text">Analyzing your health profile...</p>
+      </div>
+      <div id="results" class="hidden">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('weekly')">Weekly Plan</button>
+          <button class="tab" onclick="switchTab('daily')">Recipes</button>
+          <button class="tab" onclick="switchTab('shopping')">Shopping List</button>
+        </div>
+        <div id="tab-weekly" class="tab-content"></div>
+        <div id="tab-daily" class="tab-content hidden"></div>
+        <div id="tab-shopping" class="tab-content hidden"></div>
+        <button class="restart" onclick="restart()">← Start over</button>
+      </div>
+      <p class="error hidden" id="error-msg"></p>
+    </div>
+
+  </div>
+</div>
+
+<script src="prompt.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
